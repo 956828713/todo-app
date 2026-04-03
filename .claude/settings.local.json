@@ -1,9 +1,0 @@
-{
-  "permissions": {
-    "allow": [
-      "Bash(git init:*)",
-      "Bash(/usr/bin/git init:*)",
-      "Bash(DEVELOPER_DIR=\"\" /usr/bin/git init:*)"
-    ]
-  }
-}
