@@ -1,2 +1,3 @@
 # Private File
 .claude/
+.DS_Store
