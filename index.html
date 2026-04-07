@@ -25,8 +25,9 @@
       text-align: center;
       font-size: 28px;
       color: #1a1a2e;
-      margin-bottom: 24px;
       font-weight: 700;
+      flex-grow: 1;
+      margin: 0;
     }
 
     .input-row {
@@ -172,6 +173,31 @@
       text-decoration: underline;
     }
 
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+    }
+
+    .lang-toggle {
+      background: transparent;
+      border: 2px solid #e0e0e0;
+      border-radius: 8px;
+      padding: 6px 12px;
+      font-size: 13px;
+      color: #555;
+      cursor: pointer;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+
+    .lang-toggle:hover {
+      border-color: #6c63ff;
+      color: #6c63ff;
+      background: #f3f2ff;
+    }
+
     .empty {
       text-align: center;
       color: #bbb;
@@ -182,7 +208,10 @@
 </head>
 <body>
   <div class="container">
-    <h1>待办事项</h1>
+    <div class="header">
+      <h1>待办事项</h1>
+      <button class="lang-toggle" onclick="toggleLanguage()">🌐 English</button>
+    </div>
 
     <div class="input-row">
       <input type="text" id="todoInput" placeholder="输入待办事项..." maxlength="100">
@@ -204,11 +233,79 @@
   </div>
 
   <script>
+    // 语言设置
+    let lang = localStorage.getItem('lang') || 'zh';
+    const translations = {
+      zh: {
+        title: '待办事项',
+        placeholder: '输入待办事项...',
+        add: '添加',
+        all: '全部',
+        active: '未完成',
+        done: '已完成',
+        empty: '暂无待办事项',
+        count: count => `${count} 项未完成`,
+        clear: '清除已完成',
+        toggleBtn: '🌐 English'
+      },
+      en: {
+        title: 'Todo App',
+        placeholder: 'Add a todo...',
+        add: 'Add',
+        all: 'All',
+        active: 'Active',
+        done: 'Completed',
+        empty: 'No todos yet',
+        count: count => `${count} item${count === 1 ? '' : 's'} left`,
+        clear: 'Clear completed',
+        toggleBtn: '🌐 中文'
+      }
+    };
+
     let todos = JSON.parse(localStorage.getItem('todos') || '[]');
     let filter = 'all';
 
     function save() {
       localStorage.setItem('todos', JSON.stringify(todos));
+    }
+
+    // 切换语言
+    function toggleLanguage() {
+      lang = lang === 'zh' ? 'en' : 'zh';
+      localStorage.setItem('lang', lang);
+      updateLanguage();
+    }
+
+    // 更新界面语言
+    function updateLanguage() {
+      const t = translations[lang];
+
+      // 更新标题
+      document.querySelector('h1').textContent = t.title;
+
+      // 更新输入框placeholder
+      document.getElementById('todoInput').placeholder = t.placeholder;
+
+      // 更新添加按钮
+      document.querySelector('.input-row button').textContent = t.add;
+
+      // 更新过滤器按钮
+      const filterButtons = document.querySelectorAll('.filters button');
+      filterButtons[0].textContent = t.all;
+      filterButtons[1].textContent = t.active;
+      filterButtons[2].textContent = t.done;
+
+      // 更新清除按钮
+      document.querySelector('.footer button').textContent = t.clear;
+
+      // 更新语言切换按钮
+      document.querySelector('.lang-toggle').textContent = t.toggleBtn;
+
+      // 更新html lang属性
+      document.documentElement.lang = lang === 'zh' ? 'zh-CN' : 'en';
+
+      // 重新渲染以更新计数和空状态
+      render();
     }
 
     function render() {
@@ -218,7 +315,7 @@
       );
 
       if (filtered.length === 0) {
-        list.innerHTML = '<div class="empty">暂无待办事项</div>';
+        list.innerHTML = `<div class="empty">${translations[lang].empty}</div>`;
       } else {
         list.innerHTML = filtered.map(t => `
           <div class="todo-item ${t.done ? 'done' : ''}">
@@ -230,7 +327,7 @@
       }
 
       const active = todos.filter(t => !t.done).length;
-      document.getElementById('countText').textContent = `${active} 项未完成`;
+      document.getElementById('countText').textContent = translations[lang].count(active);
     }
 
     function escapeHtml(str) {
@@ -277,6 +374,8 @@
       if (e.key === 'Enter') addTodo();
     });
 
+    // 初始化语言
+    updateLanguage();
     render();
   </script>
 </body>
