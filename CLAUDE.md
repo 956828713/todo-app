@@ -14,11 +14,3 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## 运行方式
 
 直接用浏览器打开 `index.html` 即可，无需服务器。
-
-<!-- 测试修改 -->
-
-## 测试部分
-这是push技能的测试修改。
-
-### 再次测试
-测试push技能的功能。
