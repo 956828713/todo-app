@@ -24,6 +24,12 @@
       --shadow-color: rgba(0,0,0,0.06);
       --empty-color: #bbb;
       --delete-btn-color: #ccc;
+
+      /* 优先级颜色 - 浅色主题 */
+      --priority-high: #ff6b6b;      /* 红色 */
+      --priority-medium: #ffa726;    /* 橙色 */
+      --priority-low: #66bb6a;       /* 绿色 */
+      --priority-dot-size: 10px;
     }
 
     [data-theme="dark"] {
@@ -43,6 +49,11 @@
       --delete-btn-color: #aaa;
       --empty-color: #ccc;
       --shadow-color: rgba(0,0,0,0.2);
+
+      /* 优先级颜色 - 深色主题（稍微调整以确保可读性） */
+      --priority-high: #ff5252;      /* 更亮的红色 */
+      --priority-medium: #ffb74d;    /* 更亮的橙色 */
+      --priority-low: #81c784;       /* 更亮的绿色 */
     }
 
     body {
@@ -261,6 +272,72 @@
       background: var(--secondary-bg);
     }
 
+    .priority-selector {
+      display: flex;
+      gap: 4px;
+      margin-right: 8px;
+    }
+
+    .priority-btn {
+      width: 32px;
+      height: 32px;
+      border: 2px solid var(--border-color);
+      border-radius: 50%;
+      background: var(--container-bg);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+      padding: 0;
+      position: relative;
+    }
+
+    .priority-btn::after {
+      content: '';
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: currentColor;
+    }
+
+    .priority-btn.active {
+      border-color: var(--primary-color);
+      transform: scale(1.1);
+      box-shadow: 0 0 0 2px var(--secondary-bg);
+    }
+
+    .priority-btn[data-priority="high"] {
+      color: var(--priority-high);
+    }
+
+    .priority-btn[data-priority="medium"] {
+      color: var(--priority-medium);
+    }
+
+    .priority-btn[data-priority="low"] {
+      color: var(--priority-low);
+    }
+
+    .priority-dot {
+      width: var(--priority-dot-size);
+      height: var(--priority-dot-size);
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .priority-high {
+      background-color: var(--priority-high);
+    }
+
+    .priority-medium {
+      background-color: var(--priority-medium);
+    }
+
+    .priority-low {
+      background-color: var(--priority-low);
+    }
+
     .empty {
       text-align: center;
       color: var(--empty-color);
@@ -281,6 +358,11 @@
 
     <div class="input-row">
       <input type="text" id="todoInput" placeholder="输入待办事项..." maxlength="100">
+      <div class="priority-selector">
+        <button class="priority-btn active" data-priority="high" title="高优先级"></button>
+        <button class="priority-btn" data-priority="medium" title="中优先级"></button>
+        <button class="priority-btn" data-priority="low" title="低优先级"></button>
+      </div>
       <button onclick="addTodo()">添加</button>
     </div>
 
@@ -316,7 +398,10 @@
         clear: '清除已完成',
         toggleBtn: '🌐 English',
         darkBtn: '🌙 深色模式',
-        lightBtn: '☀️ 浅色模式'
+        lightBtn: '☀️ 浅色模式',
+        highPriority: '高优先级',
+        mediumPriority: '中优先级',
+        lowPriority: '低优先级'
       },
       en: {
         title: 'Todo App',
@@ -330,7 +415,10 @@
         clear: 'Clear completed',
         toggleBtn: '🌐 中文',
         darkBtn: '🌙 Dark mode',
-        lightBtn: '☀️ Light mode'
+        lightBtn: '☀️ Light mode',
+        highPriority: 'High priority',
+        mediumPriority: 'Medium priority',
+        lowPriority: 'Low priority'
       }
     };
 
@@ -370,6 +458,40 @@
       }
     }
 
+    // 获取当前选择的优先级
+    function getSelectedPriority() {
+      const activeBtn = document.querySelector('.priority-btn.active');
+      return activeBtn ? activeBtn.getAttribute('data-priority') : 'medium';
+    }
+
+    // 设置优先级选择
+    function setPriority(priority, btn) {
+      // 移除所有按钮的active类
+      document.querySelectorAll('.priority-btn').forEach(b => {
+        b.classList.remove('active');
+      });
+
+      // 为点击的按钮添加active类
+      btn.classList.add('active');
+    }
+
+    // 初始化优先级选择器
+    function initPrioritySelector() {
+      // 默认选中中优先级
+      const mediumBtn = document.querySelector('.priority-btn[data-priority="medium"]');
+      if (mediumBtn) {
+        mediumBtn.classList.add('active');
+      }
+
+      // 添加点击事件
+      document.querySelectorAll('.priority-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+          const priority = this.getAttribute('data-priority');
+          setPriority(priority, this);
+        });
+      });
+    }
+
     // 更新界面语言
     function updateLanguage() {
       const t = translations[lang];
@@ -398,6 +520,15 @@
       // 更新主题切换按钮文本
       updateThemeButton();
 
+      // 更新优先级按钮标题
+      const highBtn = document.querySelector('.priority-btn[data-priority="high"]');
+      const mediumBtn = document.querySelector('.priority-btn[data-priority="medium"]');
+      const lowBtn = document.querySelector('.priority-btn[data-priority="low"]');
+
+      if (highBtn) highBtn.title = t.highPriority;
+      if (mediumBtn) mediumBtn.title = t.mediumPriority;
+      if (lowBtn) lowBtn.title = t.lowPriority;
+
       // 更新html lang属性
       document.documentElement.lang = lang === 'zh' ? 'zh-CN' : 'en';
 
@@ -416,6 +547,7 @@
       } else {
         list.innerHTML = filtered.map(t => `
           <div class="todo-item ${t.done ? 'done' : ''}">
+            <div class="priority-dot priority-${t.priority || 'medium'}"></div>
             <input type="checkbox" ${t.done ? 'checked' : ''} onchange="toggle(${t.id})">
             <span class="text">${escapeHtml(t.text)}</span>
             <button class="delete-btn" onclick="remove(${t.id})">&#x2715;</button>
@@ -435,10 +567,35 @@
       const input = document.getElementById('todoInput');
       const text = input.value.trim();
       if (!text) return;
-      todos.unshift({ id: Date.now(), text, done: false });
+
+      // 获取当前选择的优先级
+      const priority = getSelectedPriority();
+
+      todos.unshift({
+        id: Date.now(),
+        text,
+        done: false,
+        priority: priority
+      });
       input.value = '';
       save();
       render();
+    }
+
+    // 确保所有待办事项都有priority字段（向后兼容）
+    function ensurePriorityField() {
+      let needsUpdate = false;
+      todos = todos.map(todo => {
+        if (!todo.hasOwnProperty('priority')) {
+          needsUpdate = true;
+          return { ...todo, priority: 'medium' }; // 默认为中优先级
+        }
+        return todo;
+      });
+
+      if (needsUpdate) {
+        save();
+      }
     }
 
     function toggle(id) {
@@ -470,6 +627,12 @@
     document.getElementById('todoInput').addEventListener('keydown', e => {
       if (e.key === 'Enter') addTodo();
     });
+
+    // 确保向后兼容
+    ensurePriorityField();
+
+    // 初始化优先级选择器
+    initPrioritySelector();
 
     // 初始化主题
     updateTheme();
